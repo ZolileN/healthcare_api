@@ -17,6 +17,7 @@ def identify_diagnosis(data, columns, diagnosis_codes):
 
 print('reading in claims and benefits tables')
 data_claimsA = pd.read_csv(FILE_LIST[1], sep= ',')
+data_claimsB = pd.read_csv(FILE_LIST[2], sep= ',')
 
 benefits_2008 = pd.read_csv(FILE_LIST[0], sep= ',')
 
@@ -25,7 +26,11 @@ benefits_2009 = pd.read_csv(FILE_LIST[6], sep= ',')
 
 data_claimsA.CLM_FROM_DT = pd.to_datetime(data_claimsA.CLM_FROM_DT, format = '%Y%m%d')
 data_claimsA.CLM_THRU_DT = pd.to_datetime(data_claimsA.CLM_THRU_DT, format = '%Y%m%d')
+data_claimsB.CLM_FROM_DT = pd.to_datetime(data_claimsB.CLM_FROM_DT, format = '%Y%m%d')
+data_claimsB.CLM_THRU_DT = pd.to_datetime(data_claimsB.CLM_THRU_DT, format = '%Y%m%d')
+
 benefits_2008.BENE_BIRTH_DT = pd.to_datetime(benefits_2008.BENE_BIRTH_DT , format = '%Y%m%d')
+benefits_2009.BENE_BIRTH_DT = pd.to_datetime(benefits_2009.BENE_BIRTH_DT , format = '%Y%m%d')
 
 ### Columns for ICD9 Diagnosis Codes ###
 icd9_columns =  [u'ICD9_DGNS_CD_1', u'ICD9_DGNS_CD_2', u'ICD9_DGNS_CD_3',
@@ -57,8 +62,14 @@ no_hist_of_dbts = benefits_08_09[(benefits_08_09.SP_DIABETES_2008 != 1)&
                                  (benefits_08_09.SP_DIABETES_2009 != 1)]
 
 ## join to claims data
-claims_2010 = data_claimsA[(data_claimsA.CLM_THRU_DT >= '2010-01-01')&
+claims_2010_A = data_claimsA[(data_claimsA.CLM_THRU_DT >= '2010-01-01')&
                            (data_claimsA.CLM_THRU_DT <= '2010-12-31')]
+
+claims_2010_B = data_claimsB[(data_claimsB.CLM_THRU_DT >= '2010-01-01')&
+                          (data_claimsB.CLM_THRU_DT <= '2010-12-31')]
+
+claims_2010 = pd.concat([claims_2010_A,claims_2010_B])
+                           
 claims_no_hist = pd.merge(claims_2010, no_hist_of_dbts, on = 'DESYNPUF_ID', how = 'inner')
 
 print('find all type II diabetes diagnosis in 2010')
